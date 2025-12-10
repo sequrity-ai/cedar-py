@@ -1,4 +1,4 @@
-use cedar_policy::{Authorizer, Policy};
+use cedar_policy::{Authorizer, Policy, Template};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::str::FromStr;
@@ -7,12 +7,14 @@ mod context_utils;
 mod decision;
 mod entity_store;
 mod policy_set;
+mod policy_template;
 mod request;
 mod schema;
 
 use decision::Decision;
 use entity_store::EntityStore;
 use policy_set::PolicySet;
+use policy_template::PolicyTemplate;
 use request::Request;
 use schema::CedarSchema;
 
@@ -31,6 +33,24 @@ fn validate_policy(policy_text: &str) -> PyResult<bool> {
     match Policy::from_str(policy_text) {
         Ok(_) => Ok(true),
         Err(e) => Err(PyValueError::new_err(format!("Invalid policy: {}", e))),
+    }
+}
+
+/// Validate a Cedar policy template text.
+///
+/// Args:
+///     template_text (str): The Cedar policy template text to validate
+///
+/// Returns:
+///     bool: True if the template is valid
+///
+/// Raises:
+///     ValueError: If the template is invalid with error details
+#[pyfunction]
+fn validate_template(template_text: &str) -> PyResult<bool> {
+    match Template::from_str(template_text) {
+        Ok(_) => Ok(true),
+        Err(e) => Err(PyValueError::new_err(format!("Invalid template: {}", e))),
     }
 }
 
@@ -81,11 +101,13 @@ fn is_authorized(
 #[pymodule]
 fn _cedar_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PolicySet>()?;
+    m.add_class::<PolicyTemplate>()?;
     m.add_class::<Request>()?;
     m.add_class::<Decision>()?;
     m.add_class::<EntityStore>()?;
     m.add_class::<CedarSchema>()?;
     m.add_function(wrap_pyfunction!(validate_policy, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_template, m)?)?;
     m.add_function(wrap_pyfunction!(schema::validate_policies, m)?)?;
     m.add_function(wrap_pyfunction!(is_authorized, m)?)?;
     Ok(())

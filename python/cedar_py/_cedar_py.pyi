@@ -50,7 +50,7 @@ class Decision:
         ...
 
 class PolicySet:
-    """A collection of Cedar policies."""
+    """A collection of Cedar policies and templates."""
 
     def __init__(self) -> None:
         """Create a new empty policy set."""
@@ -76,6 +76,77 @@ class PolicySet:
 
         Returns:
             The policy text, or None if not found
+        """
+        ...
+
+    def add_template(self, template: "PolicyTemplate") -> None:
+        """Add a policy template to the set.
+
+        Args:
+            template: The policy template to add
+        """
+        ...
+
+    def add_template_linked_policy(
+        self, policy_id: str, template_id: str, slots: dict[str, str]
+    ) -> None:
+        """Add a template-linked policy to the set.
+
+        This creates a policy from a template by filling in the slot values.
+
+        Args:
+            policy_id: Unique identifier for the policy
+            template_id: ID of the template to use
+            slots: Dictionary mapping slot names to entity UIDs
+
+        Raises:
+            ValueError: If the template doesn't exist or slot values are invalid
+        """
+        ...
+
+class PolicyTemplate:
+    """A Cedar policy template.
+
+    Policy templates allow you to define reusable policy patterns with slots
+    that can be filled in when instantiating the template.
+    """
+
+    def __init__(self, template_id: str, template_text: str) -> None:
+        """Create a new policy template.
+
+        Args:
+            template_id: Unique identifier for the template
+            template_text: The Cedar policy template text with slots (e.g., ?principal, ?resource)
+
+        Raises:
+            ValueError: If the template text is invalid
+        """
+        ...
+
+    @property
+    def template_id(self) -> str:
+        """The template identifier."""
+        ...
+
+    @property
+    def template_text(self) -> str:
+        """The template text with slots."""
+        ...
+
+    def instantiate(
+        self, policy_id: str, slots: dict[str, str]
+    ) -> tuple[str, str, dict[str, str]]:
+        """Create a policy from this template by filling in the slots.
+
+        Args:
+            policy_id: Unique identifier for the instantiated policy
+            slots: Dictionary mapping slot names to entity UIDs
+
+        Returns:
+            A tuple of (policy_id, template_id, slots_dict)
+
+        Raises:
+            ValueError: If slot values are invalid
         """
         ...
 
@@ -143,6 +214,20 @@ def validate_policy(policy_text: str) -> bool:
 
     Raises:
         ValueError: If the policy is invalid
+    """
+    ...
+
+def validate_template(template_text: str) -> bool:
+    """Validate a Cedar policy template.
+
+    Args:
+        template_text: The Cedar policy template text
+
+    Returns:
+        True if valid
+
+    Raises:
+        ValueError: If the template is invalid
     """
     ...
 
