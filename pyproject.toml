@@ -1,0 +1,32 @@
+[project]
+    name="cedar-py"
+    version="0.1.0"
+    description="Python bindings for the Cedar policy language"
+    readme="README.md"
+    requires-python=">=3.8"
+    license={ text="MIT" }
+    authors=[{ name="Cheng Zhang", email="chengzhang98@outlook.com" }]
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Rust",
+    ]
+
+[build-system]
+    requires=["maturin>=1.0,<2.0"]
+    build-backend="maturin"
+
+[tool.maturin]
+    features=["pyo3/extension-module"]
+    python-source="python"
+    module-name="cedar_py._cedar_py"
+
+[tool.uv]
+    dev-dependencies=["maturin>=1.7.4", "pytest>=8.0.0"]
