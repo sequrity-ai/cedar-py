@@ -153,6 +153,25 @@ class PolicySet:
         """
         ...
 
+    def __copy__(self) -> "PolicySet":
+        """Support for copy.copy() - creates a shallow copy.
+
+        Returns:
+            A new PolicySet instance with copied data
+        """
+        ...
+
+    def __deepcopy__(self, memo: dict) -> "PolicySet":
+        """Support for copy.deepcopy() - creates a deep copy.
+
+        Args:
+            memo: Dictionary for memoization
+
+        Returns:
+            A new PolicySet instance with deeply copied data
+        """
+        ...
+
 class PolicyTemplate:
     """A Cedar policy template.
 
