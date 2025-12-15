@@ -72,44 +72,36 @@ def main():
 
     print(f"✓ Created {len(entities)} entities\n")
 
-    # 3. Create policies
+    # 3. Create policies using multiple methods
     print("3. Creating policies...")
-    policies = PolicySet()
 
-    policies.add_policy(
-        "admins-can-do-anything",
-        """
+    # Method 1: Create PolicySet with multiple policies using from_str
+    policies = PolicySet.from_str("""
         permit(
             principal in Group::"admins",
             action,
             resource
         );
-    """,
-    )
 
-    policies.add_policy(
-        "editors-can-edit",
-        """
         permit(
             principal in Group::"editors",
             action == Action::"edit",
             resource
         );
-    """,
-    )
+    """)
+    print(f"✓ Created PolicySet with {len(policies)} policies using from_str()\n")
 
-    policies.add_policy(
-        "anyone-can-view",
-        """
+    # Method 2: Add more policies using add_policies_from_str
+    print("3b. Adding more policies using add_policies_from_str()...")
+    policy_ids = policies.add_policies_from_str("""
         permit(
             principal,
             action == Action::"view",
             resource
         );
-    """,
-    )
-
-    print(f"✓ Created {len(policies)} policies\n")
+    """)
+    print(f"✓ Added {len(policy_ids)} more policies (IDs: {policy_ids})")
+    print(f"✓ PolicySet now has {len(policies)} total policies\n")
 
     # 4. Validate policies against schema
     print("4. Validating policies against schema...")

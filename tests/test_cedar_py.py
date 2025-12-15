@@ -76,6 +76,61 @@ class TestPolicySet:
         ps = PolicySet()
         assert ps.get_policy("nonexistent") is None
 
+    def test_from_str_classmethod(self):
+        """Test creating a PolicySet from string with multiple policies."""
+        policies_text = """
+        permit(principal, action, resource);
+        forbid(principal == User::"banned", action, resource);
+        permit(principal in Group::"admins", action, resource);
+        """
+        ps = PolicySet.from_str(policies_text)
+        assert len(ps) == 3
+
+    def test_from_str_single_policy(self):
+        """Test creating a PolicySet from string with a single policy."""
+        policy_text = "permit(principal, action, resource);"
+        ps = PolicySet.from_str(policy_text)
+        assert len(ps) == 1
+
+    def test_from_str_invalid(self):
+        """Test that from_str raises ValueError for invalid policy text."""
+        with pytest.raises(ValueError):
+            PolicySet.from_str("this is not valid cedar policy")
+
+    def test_add_policies_from_str(self):
+        """Test adding multiple policies to an existing PolicySet."""
+        ps = PolicySet()
+        ps.add_policy("manual", "permit(principal, action, resource);")
+        assert len(ps) == 1
+
+        policies_text = """
+        forbid(principal == User::"banned", action, resource);
+        permit(principal in Group::"admins", action, resource);
+        """
+        policy_ids = ps.add_policies_from_str(policies_text)
+        assert len(ps) == 3
+        assert len(policy_ids) == 2
+        assert all(isinstance(pid, str) for pid in policy_ids)
+
+    def test_add_policies_from_str_invalid(self):
+        """Test that add_policies_from_str raises ValueError for invalid text."""
+        ps = PolicySet()
+        with pytest.raises(ValueError):
+            ps.add_policies_from_str("invalid policy text")
+
+    def test_from_str_then_add_more(self):
+        """Test combining from_str classmethod with add_policies_from_str."""
+        # Create initial set
+        ps = PolicySet.from_str("permit(principal, action, resource);")
+        assert len(ps) == 1
+
+        # Add more policies
+        policy_ids = ps.add_policies_from_str(
+            'forbid(principal == User::"banned", action, resource);'
+        )
+        assert len(ps) == 2
+        assert len(policy_ids) == 1
+
 
 # =============================================================================
 # Request and Context Tests

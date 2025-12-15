@@ -17,6 +17,7 @@ pub struct PolicySet {
     policies: HashMap<String, String>, // Store policy text instead of parsed Policy
     templates: HashMap<String, String>, // Store template text
     template_links: HashMap<String, (String, HashMap<String, String>)>, // policy_id -> (template_id, slots)
+    next_auto_id: usize, // Track next available auto-generated ID
 }
 
 #[pymethods]
@@ -28,7 +29,52 @@ impl PolicySet {
             policies: HashMap::new(),
             templates: HashMap::new(),
             template_links: HashMap::new(),
+            next_auto_id: 0,
         }
+    }
+
+    /// Create a new PolicySet from Cedar policy text containing multiple policies.
+    ///
+    /// This is a class method that parses Cedar policy set text and creates
+    /// a new PolicySet instance with all the policies.
+    ///
+    /// Args:
+    ///     policies_text (str): Cedar policy set text containing one or more policies
+    ///
+    /// Returns:
+    ///     PolicySet: A new PolicySet instance with the parsed policies
+    ///
+    /// Raises:
+    ///     ValueError: If the policies text is invalid
+    ///
+    /// Example:
+    ///     >>> policies = PolicySet.from_str('''
+    ///     ...     permit(principal, action, resource);
+    ///     ...     forbid(principal == User::"banned", action, resource);
+    ///     ... ''')
+    #[classmethod]
+    fn from_str(_cls: &Bound<'_, pyo3::types::PyType>, policies_text: &str) -> PyResult<Self> {
+        // Parse the policy set to validate and extract individual policies
+        let policy_set = CedarPolicySet::from_str(policies_text)
+            .map_err(|e| PyValueError::new_err(format!("Invalid policy set: {}", e)))?;
+
+        let mut policies_map = HashMap::new();
+
+        // Cedar assigns auto IDs like "policy0", "policy1", etc.
+        // We need to extract each policy and store it with its ID
+        for policy in policy_set.policies() {
+            let policy_id = policy.id().to_string();
+            let policy_text = policy.to_string();
+
+            policies_map.insert(policy_id, policy_text);
+        }
+
+        Ok(PolicySet {
+            policies: policies_map.clone(),
+            templates: HashMap::new(),
+            template_links: HashMap::new(),
+            next_auto_id: policies_map.len(),
+        })
     }
 
     /// Add a policy to the set.
@@ -49,6 +95,48 @@ impl PolicySet {
         Ok(())
     }
 
+    /// Add multiple policies from a single text string to this PolicySet.
+    ///
+    /// Parses Cedar policy set text containing multiple policies and adds them all.
+    /// Each policy will be assigned an auto-generated ID like "policy0", "policy1", etc.
+    ///
+    /// Args:
+    ///     policies_text (str): Cedar policy set text containing one or more policies
+    ///
+    /// Returns:
+    ///     list[str]: List of auto-generated policy IDs for the added policies
+    ///
+    /// Raises:
+    ///     ValueError: If the policies text is invalid
+    ///
+    /// Example:
+    ///     >>> policies = PolicySet()
+    ///     >>> policy_ids = policies.add_policies_from_str('''
+    ///     ...     permit(principal, action, resource);
+    ///     ...     forbid(principal == User::"banned", action, resource);
+    ///     ... ''')
+    ///     >>> print(policy_ids)  # ['policy0', 'policy1']
+    fn add_policies_from_str(&mut self, policies_text: &str) -> PyResult<Vec<String>> {
+        // Parse the policy set to validate and extract individual policies
+        let policy_set = CedarPolicySet::from_str(policies_text)
+            .map_err(|e| PyValueError::new_err(format!("Invalid policy set: {}", e)))?;
+
+        let mut added_ids = Vec::new();
+
+        // Assign unique IDs to avoid collisions with existing policies
+        for policy in policy_set.policies() {
+            let policy_text = policy.to_string();
+
+            // Generate unique ID using our counter
+            let unique_id = format!("policy{}", self.next_auto_id);
+            self.next_auto_id += 1;
+
+            self.policies.insert(unique_id.clone(), policy_text);
+            added_ids.push(unique_id);
+        }
+
+        Ok(added_ids)
+    }
     /// Get a policy by its ID.
     ///
     /// Args:
