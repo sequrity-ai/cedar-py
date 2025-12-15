@@ -131,6 +131,42 @@ class TestPolicySet:
         assert len(ps) == 2
         assert len(policy_ids) == 1
 
+    def test_copy(self):
+        """Test shallow copy of PolicySet."""
+        import copy
+
+        ps = PolicySet.from_str("permit(principal, action, resource);")
+        ps_copy = copy.copy(ps)
+
+        assert len(ps) == len(ps_copy)
+        assert ps is not ps_copy
+
+        # Modify copy
+        ps_copy.add_policy("new", "forbid(principal, action, resource);")
+        assert len(ps_copy) == 2
+        assert len(ps) == 1  # Original unchanged
+
+    def test_deepcopy(self):
+        """Test deep copy of PolicySet."""
+        import copy
+
+        ps = PolicySet.from_str("""
+            permit(principal, action, resource);
+            forbid(principal == User::"banned", action, resource);
+        """)
+        ps_deepcopy = copy.deepcopy(ps)
+
+        assert len(ps) == len(ps_deepcopy)
+        assert ps is not ps_deepcopy
+
+        # Modify deep copy
+        policy_ids = ps_deepcopy.add_policies_from_str(
+            "permit(principal in Group::\"admins\", action, resource);"
+        )
+        assert len(ps_deepcopy) == 3
+        assert len(ps) == 2  # Original unchanged
+        assert len(policy_ids) == 1
+
 
 # =============================================================================
 # Request and Context Tests

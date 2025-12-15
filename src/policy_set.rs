@@ -234,6 +234,36 @@ impl PolicySet {
     fn __repr__(&self) -> String {
         format!("PolicySet(policies={})", self.policies.len())
     }
+
+    /// Support for copy.copy() - creates a shallow copy.
+    ///
+    /// Returns:
+    ///     PolicySet: A new PolicySet instance with copied data
+    fn __copy__(&self) -> Self {
+        PolicySet {
+            policies: self.policies.clone(),
+            templates: self.templates.clone(),
+            template_links: self.template_links.clone(),
+            next_auto_id: self.next_auto_id,
+        }
+    }
+
+    /// Support for copy.deepcopy() - creates a deep copy.
+    ///
+    /// Args:
+    ///     memo (dict): Dictionary for memoization (unused but required by protocol)
+    ///
+    /// Returns:
+    ///     PolicySet: A new PolicySet instance with deeply copied data
+    fn __deepcopy__(&self, _memo: &Bound<'_, PyDict>) -> Self {
+        // Since all our data is owned (HashMap of Strings), clone is effectively a deep copy
+        PolicySet {
+            policies: self.policies.clone(),
+            templates: self.templates.clone(),
+            template_links: self.template_links.clone(),
+            next_auto_id: self.next_auto_id,
+        }
+    }
 }
 
 impl PolicySet {
