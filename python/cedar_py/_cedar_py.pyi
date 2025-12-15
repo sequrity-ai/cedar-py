@@ -56,6 +56,30 @@ class PolicySet:
         """Create a new empty policy set."""
         ...
 
+    @classmethod
+    def from_str(cls, policies_text: str) -> "PolicySet":
+        """Create a new PolicySet from Cedar policy text containing multiple policies.
+
+        This is a class method that parses Cedar policy set text and creates
+        a new PolicySet instance with all the policies.
+
+        Args:
+            policies_text: Cedar policy set text containing one or more policies
+
+        Returns:
+            A new PolicySet instance with the parsed policies
+
+        Raises:
+            ValueError: If the policies text is invalid
+
+        Example:
+            >>> policies = PolicySet.from_str('''
+            ...     permit(principal, action, resource);
+            ...     forbid(principal == User::"banned", action, resource);
+            ... ''')
+        """
+        ...
+
     def add_policy(self, policy_id: str, policy_text: str) -> None:
         """Add a policy to the set.
 
@@ -65,6 +89,31 @@ class PolicySet:
 
         Raises:
             ValueError: If the policy is invalid
+        """
+        ...
+
+    def add_policies_from_str(self, policies_text: str) -> list[str]:
+        """Add multiple policies from a single text string to this PolicySet.
+
+        Parses Cedar policy set text containing multiple policies and adds them all.
+        Each policy will be assigned an auto-generated ID like "policy0", "policy1", etc.
+
+        Args:
+            policies_text: Cedar policy set text containing one or more policies
+
+        Returns:
+            List of auto-generated policy IDs for the added policies
+
+        Raises:
+            ValueError: If the policies text is invalid
+
+        Example:
+            >>> policies = PolicySet()
+            >>> policy_ids = policies.add_policies_from_str('''
+            ...     permit(principal, action, resource);
+            ...     forbid(principal == User::"banned", action, resource);
+            ... ''')
+            >>> print(policy_ids)  # ['policy0', 'policy1']
         """
         ...
 
