@@ -21,22 +21,24 @@ def main():
     # 1. Create a schema
     print("1. Creating schema...")
     schema_text = """
-    entity User, Group;
-    entity Document {
-        owner: User,
-    };
-    action view appliesTo {
-        principal: [User, Group],
-        resource: [Document],
-        context: {
-            ip_address: String,
-            time: String,
-        }
-    };
-    action edit appliesTo {
-        principal: [User],
-        resource: [Document]
-    };
+    namespace MyApp {
+        entity User, Group;
+        entity Document {
+            owner: User,
+        };
+        action view appliesTo {
+            principal: [User, Group],
+            resource: [Document],
+            context: {
+                ip_address: String,
+                time: String,
+            }
+        };
+        action edit appliesTo {
+            principal: [User],
+            resource: [Document]
+        };
+    }
     """
 
     schema = CedarSchema(schema_text)
@@ -47,27 +49,29 @@ def main():
     entities = EntityStore()
 
     # Add groups
-    entities.add_entity('Group::"admins"')
-    entities.add_entity('Group::"editors"')
+    entities.add_entity('MyApp::Group::"admins"')
+    entities.add_entity('MyApp::Group::"editors"')
 
     # Add users with group membership
     entities.add_entity(
-        'User::"alice"',
+        'MyApp::User::"alice"',
         attrs={"email": "alice@example.com", "role": "admin"},
-        parents=['Group::"admins"'],
+        parents=['MyApp::Group::"admins"'],
     )
     entities.add_entity(
-        'User::"bob"',
+        'MyApp::User::"bob"',
         attrs={"email": "bob@example.com", "role": "editor"},
-        parents=['Group::"editors"'],
+        parents=['MyApp::Group::"editors"'],
     )
     entities.add_entity(
-        'User::"charlie"', attrs={"email": "charlie@example.com", "role": "viewer"}
+        'MyApp::User::"charlie"',
+        attrs={"email": "charlie@example.com", "role": "viewer"},
     )
 
     # Add documents
     entities.add_entity(
-        'Document::"report.pdf"', attrs={"owner": "alice", "created": "2025-01-01"}
+        'MyApp::Document::"report.pdf"',
+        attrs={"owner": "alice", "created": "2025-01-01"},
     )
 
     print(f"✓ Created {len(entities)} entities\n")
@@ -78,14 +82,14 @@ def main():
     # Method 1: Create PolicySet with multiple policies using from_str
     policies = PolicySet.from_str("""
         permit(
-            principal in Group::"admins",
+            principal in MyApp::Group::"admins",
             action,
             resource
         );
 
         permit(
-            principal in Group::"editors",
-            action == Action::"edit",
+            principal in MyApp::Group::"editors",
+            action == MyApp::Action::"edit",
             resource
         );
     """)
@@ -96,7 +100,7 @@ def main():
     policy_ids = policies.add_policies_from_str("""
         permit(
             principal,
-            action == Action::"view",
+            action == MyApp::Action::"view",
             resource
         );
     """)
@@ -120,9 +124,9 @@ def main():
         {
             "name": "Alice (admin) viewing document (with schema validation)",
             "request": Request(
-                principal='User::"alice"',
-                action='Action::"view"',
-                resource='Document::"report.pdf"',
+                principal='MyApp::User::"alice"',
+                action='MyApp::Action::"view"',
+                resource='MyApp::Document::"report.pdf"',
                 context={"ip_address": "192.168.1.1", "time": "2025-12-10T10:00:00Z"},
                 schema=schema,
             ),
@@ -131,9 +135,9 @@ def main():
         {
             "name": "Bob (editor) editing document (with schema)",
             "request": Request(
-                principal='User::"bob"',
-                action='Action::"edit"',
-                resource='Document::"report.pdf"',
+                principal='MyApp::User::"bob"',
+                action='MyApp::Action::"edit"',
+                resource='MyApp::Document::"report.pdf"',
                 schema=schema,
             ),
             "expected": "Allow",
@@ -141,18 +145,18 @@ def main():
         {
             "name": "Charlie (viewer) viewing document",
             "request": Request(
-                principal='User::"charlie"',
-                action='Action::"view"',
-                resource='Document::"report.pdf"',
+                principal='MyApp::User::"charlie"',
+                action='MyApp::Action::"view"',
+                resource='MyApp::Document::"report.pdf"',
             ),
             "expected": "Allow",
         },
         {
             "name": "Charlie (viewer) editing document",
             "request": Request(
-                principal='User::"charlie"',
-                action='Action::"edit"',
-                resource='Document::"report.pdf"',
+                principal='MyApp::User::"charlie"',
+                action='MyApp::Action::"edit"',
+                resource='MyApp::Document::"report.pdf"',
             ),
             "expected": "Deny",
         },
@@ -162,9 +166,9 @@ def main():
     print("\\n6. Testing schema validation during authorization...")
     # Create a request with an action not defined in the schema
     invalid_action_request = Request(
-        principal='User::"alice"',
-        action='Action::"delete"',  # Action not defined in schema
-        resource='Document::"report.pdf"',
+        principal='MyApp::User::"alice"',
+        action='MyApp::Action::"delete"',  # Action not defined in schema
+        resource='MyApp::Document::"report.pdf"',
         schema=schema,
     )
     try:
