@@ -12,29 +12,31 @@ Download the appropriate wheel for your platform from the [latest release](https
 
 ```bash
 # Linux x86_64
-pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.1.0/cedar_py-0.1.0-cp311-cp311-linux_x86_64.whl
-
-# macOS (Intel)
-pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.1.0/cedar_py-0.1.0-cp311-cp311-macosx_10_12_x86_64.whl
+pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.2.0/cedar_py-0.2.0-cp311-cp311-manylinux_2_34_x86_64.whl
 
 # macOS (Apple Silicon)
-pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.1.0/cedar_py-0.1.0-cp311-cp311-macosx_11_0_arm64.whl
+pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.2.0/cedar_py-0.2.0-cp311-cp311-macosx_11_0_arm64.whl
 
 # Windows
-pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.1.0/cedar_py-0.1.0-cp311-cp311-win_amd64.whl
+pip install https://github.com/sequrity-ai/cedar-py/releases/download/v0.2.0/cedar_py-0.2.0-cp311-cp311-win_amd64.whl
 ```
+
+> **Note**: Replace `v0.2.0` with the desired version and adjust Python version (`cp311`) as needed.
 
 ### From Source (Requires Rust)
 
 ```bash
-# Install directly from git
+# Install directly from git (latest main branch)
 pip install git+https://github.com/sequrity-ai/cedar-py.git
 
 # Or install a specific version/tag
-pip install git+https://github.com/sequrity-ai/cedar-py.git@v0.1.0
+pip install git+https://github.com/sequrity-ai/cedar-py.git@v0.2.0
 
 # Development installation
-uv pip install -e .
+git clone https://github.com/sequrity-ai/cedar-py.git
+cd cedar-py
+uv sync
+uv run maturin develop
 ```
 
 ## Quick Start
