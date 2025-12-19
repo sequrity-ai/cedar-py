@@ -3,7 +3,7 @@
     dynamic=["version"]
     description="Python bindings for the Cedar policy language"
     readme="README.md"
-    requires-python=">=3.8"
+    requires-python=">=3.10"
     license={ text="MIT" }
     authors=[{ name="Cheng Zhang", email="chengzhang98@outlook.com" }]
     classifiers=[
