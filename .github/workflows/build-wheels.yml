@@ -60,8 +60,10 @@ jobs:
       - name: Update version from tag
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          sed -i 's/version = ".*"/version = "'$VERSION'"/' Cargo.toml
+          python -c "import re; content = open('Cargo.toml').read(); open('Cargo.toml', 'w').write(re.sub(r'version = \"[^\"]*\"', f'version = \"{VERSION}\"', content, count=1))"
         shell: bash
+        env:
+          VERSION: ${{ github.ref_name }}
 
       - name: Build wheels
         run: maturin build --release --out dist
@@ -90,8 +92,10 @@ jobs:
       - name: Update version from tag
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          sed -i 's/version = ".*"/version = "'$VERSION'"/' Cargo.toml
+          python -c "import re; content = open('Cargo.toml').read(); open('Cargo.toml', 'w').write(re.sub(r'version = \"[^\"]*\"', f'version = \"{VERSION}\"', content, count=1))"
         shell: bash
+        env:
+          VERSION: ${{ github.ref_name }}
 
       - name: Build sdist
         run: maturin sdist --out dist
