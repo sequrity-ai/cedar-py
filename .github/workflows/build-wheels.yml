@@ -57,6 +57,12 @@ jobs:
       - name: Install maturin
         run: pip install maturin
 
+      - name: Update version from tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -i 's/version = ".*"/version = "'$VERSION'"/' Cargo.toml
+        shell: bash
+
       - name: Build wheels
         run: maturin build --release --out dist
 
@@ -80,6 +86,12 @@ jobs:
 
       - name: Install maturin
         run: pip install maturin
+
+      - name: Update version from tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -i 's/version = ".*"/version = "'$VERSION'"/' Cargo.toml
+        shell: bash
 
       - name: Build sdist
         run: maturin sdist --out dist
